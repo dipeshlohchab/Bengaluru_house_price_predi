@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangalore Home Price Prediction</title>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+
+<div class="img"></div>
+<form class="form">
+    <h2>Area (Square Feet)</h2>
+    <input class="area" type="text" id="uiSqft" name="total_sqft" value="1000" required>
+
+    <h2>BHK</h2>
+    <div class="switch-field">
+        <input type="radio" id="radio-bhk-1" name="uiBHK" value="1"/>
+        <label for="radio-bhk-1">1</label>
+        <input type="radio" id="radio-bhk-2" name="uiBHK" value="2" checked/>
+        <label for="radio-bhk-2">2</label>
+        <input type="radio" id="radio-bhk-3" name="uiBHK" value="3"/>
+        <label for="radio-bhk-3">3</label>
+        <input type="radio" id="radio-bhk-4" name="uiBHK" value="4"/>
+        <label for="radio-bhk-4">4</label>
+        <input type="radio" id="radio-bhk-5" name="uiBHK" value="5"/>
+        <label for="radio-bhk-5">5</label>
+    </div>
+
+    <h2>Bath</h2>
+    <div class="switch-field">
+        <input type="radio" id="radio-bath-1" name="uiBathrooms" value="1"/>
+        <label for="radio-bath-1">1</label>
+        <input type="radio" id="radio-bath-2" name="uiBathrooms" value="2" checked/>
+        <label for="radio-bath-2">2</label>
+        <input type="radio" id="radio-bath-3" name="uiBathrooms" value="3"/>
+        <label for="radio-bath-3">3</label>
+        <input type="radio" id="radio-bath-4" name="uiBathrooms" value="4"/>
+        <label for="radio-bath-4">4</label>
+        <input type="radio" id="radio-bath-5" name="uiBathrooms" value="5"/>
+        <label for="radio-bath-5">5</label>
+    </div>
+
+    <h2>Balcony</h2>
+    <div class="switch-field">
+        <input type="radio" id="radio-balcony-1" name="uiBalcony" value="1"/>
+        <label for="radio-balcony-1">1</label>
+        <input type="radio" id="radio-balcony-2" name="uiBalcony" value="2" checked/>
+        <label for="radio-balcony-2">2</label>
+        <input type="radio" id="radio-balcony-3" name="uiBalcony" value="3"/>
+        <label for="radio-balcony-3">3</label>
+        <input type="radio" id="radio-balcony-4" name="uiBalcony" value="4"/>
+        <label for="radio-balcony-4">4</label>
+        <input type="radio" id="radio-balcony-5" name="uiBalcony" value="5"/>
+        <label for="radio-balcony-5">5</label>
+    </div>
+
+    <h2>Location</h2>
+    <div>
+        <select class="location" name="location" id="uiLocations">
+            <option value="" disabled="disabled" selected="selected">Choose a Location</option>
+        </select>
+    </div>
+
+    <button class="submit" type="button" onclick="onClickedEstimatePrice()">Estimate Price</button>
+    
+    <div id="uiEstimatedPrice" class="result">
+        <h2></h2>
+    </div>
+</form>
+
+<script>
+    $(document).ready(function() {
+        // Load locations dynamically from Flask API
+        $.get("/get_location_names", function(response) {
+            var locations = response.locations;
+            var uiLocations = $("#uiLocations");
+            uiLocations.empty();
+            uiLocations.append(`<option value="" disabled selected>Choose a Location</option>`);
+            locations.forEach(function(location) {
+                uiLocations.append(new Option(location, location));
+            });
+        });
+
+        // Function to estimate price
+        function onClickedEstimatePrice() {
+            var sqft = $("#uiSqft").val();
+            var bhk = $("input[name='uiBHK']:checked").val();
+            var bath = $("input[name='uiBathrooms']:checked").val();
+            var balcony = $("input[name='uiBalcony']:checked").val();  
+            var location = $("#uiLocations").val();
+
+            if (!sqft || !location) {
+                alert("Please enter all required fields.");
+                return;
+            }
+
+            var requestData = {
+                total_sqft: sqft,
+                bhk: bhk,
+                bath: bath,
+                balcony: balcony,  
+                location: location
+            };
+
+            $.ajax({
+                url: "/predict_home_price",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(requestData),
+                success: function(response) {
+                    $('#uiEstimatedPrice h2').text("Estimated Price: ₹" + response.estimated_price + " Lakhs");
+                },
+                error: function(error) {
+                    console.error("Error in price prediction:", error);
+                    $('#uiEstimatedPrice h2').text("Error fetching price.");
+                }
+            });
+        }
+
+        // Attach function to global scope
+        window.onClickedEstimatePrice = onClickedEstimatePrice;
+    });
+</script>
+
+</body>
+</html>
