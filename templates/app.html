@@ -71,59 +71,7 @@
     </div>
 </form>
 
-<script>
-    $(document).ready(function() {
-        // Load locations dynamically from Flask API
-        $.get("/get_location_names", function(response) {
-            var locations = response.locations;
-            var uiLocations = $("#uiLocations");
-            uiLocations.empty();
-            uiLocations.append(`<option value="" disabled selected>Choose a Location</option>`);
-            locations.forEach(function(location) {
-                uiLocations.append(new Option(location, location));
-            });
-        });
-
-        // Function to estimate price
-        function onClickedEstimatePrice() {
-            var sqft = $("#uiSqft").val();
-            var bhk = $("input[name='uiBHK']:checked").val();
-            var bath = $("input[name='uiBathrooms']:checked").val();
-            var balcony = $("input[name='uiBalcony']:checked").val();  
-            var location = $("#uiLocations").val();
-
-            if (!sqft || !location) {
-                alert("Please enter all required fields.");
-                return;
-            }
-
-            var requestData = {
-                total_sqft: sqft,
-                bhk: bhk,
-                bath: bath,
-                balcony: balcony,  
-                location: location
-            };
-
-            $.ajax({
-                url: "/predict_home_price",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(requestData),
-                success: function(response) {
-                    $('#uiEstimatedPrice h2').text("Estimated Price: ₹" + response.estimated_price + " Lakhs");
-                },
-                error: function(error) {
-                    console.error("Error in price prediction:", error);
-                    $('#uiEstimatedPrice h2').text("Error fetching price.");
-                }
-            });
-        }
-
-        // Attach function to global scope
-        window.onClickedEstimatePrice = onClickedEstimatePrice;
-    });
-</script>
+<script src= "{{ url_for('static', filename='app.js') }}"></script>
 
 </body>
 </html>
